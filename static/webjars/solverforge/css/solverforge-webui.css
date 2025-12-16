@@ -1,0 +1,122 @@
+/*
+ * =============================================================================
+ * SOLVERFORGE QUICKSTART - WEB UI STYLESHEET
+ * =============================================================================
+ *
+ * This CSS file provides the base styling for all SolverForge quickstart UIs.
+ * It customizes Bootstrap 5 variables and adds SolverForge-specific styles.
+ *
+ * CUSTOMIZATION GUIDE:
+ * --------------------
+ * 1. Colors: Modify the CSS variables in :root to match your branding
+ * 2. Buttons: The .btn classes customize Bootstrap button styles
+ * 3. Navigation: .nav-pills styles the main navigation tabs
+ * 4. Layout: The navbar height is defined for consistent positioning
+ *
+ * The main colors used are:
+ * - Green (#10b981): Primary action color, success states
+ * - Violet (#3E00FF): Secondary accent, links
+ * - Gray (#666666): Text, borders
+ * - Light (#F2F2F2): Background
+ */
+
+:root {
+    /* =======================================================================
+     * NAVBAR & LAYOUT
+     * Keep in sync with .navbar height on a large screen.
+     * ======================================================================= */
+    --ts-navbar-height: 109px;
+
+    /* =======================================================================
+     * COLOR PALETTE
+     * These are the SolverForge brand colors. Modify to match your branding.
+     * ======================================================================= */
+    --ts-green-1-rgb: #10b981;  /* Primary green - used for success, primary actions */
+    --ts-green-2-rgb: #059669;  /* Darker green - used for hover states */
+    --ts-violet-1-rgb: #3E00FF; /* Primary violet - used for links, accents */
+    --ts-violet-2-rgb: #3423A6; /* Secondary violet - used for hover states */
+    --ts-violet-3-rgb: #2E1760; /* Dark violet - used for dark backgrounds */
+    --ts-violet-4-rgb: #200F4F; /* Darker violet */
+    --ts-violet-5-rgb: #000000; /* Darkest (currently black) */
+    --ts-violet-dark-1-rgb: #b6adfd; /* Light violet for dark backgrounds */
+    --ts-violet-dark-2-rgb: #c1bbfd; /* Lighter violet for dark backgrounds */
+    --ts-gray-rgb: #666666;     /* Gray text */
+    --ts-white-rgb: #FFFFFF;    /* White */
+    --ts-light-rgb: #F2F2F2;    /* Light background */
+    --ts-gray-border: #c5c5c5;  /* Border color */
+
+    /* =======================================================================
+     * BOOTSTRAP OVERRIDES
+     * These override Bootstrap's default CSS variables.
+     * ======================================================================= */
+    --tf-light-rgb-transparent: rgb(242,242,242,0.5);
+    --bs-body-bg: var(--ts-light-rgb);
+    --bs-link-color: var(--ts-violet-1-rgb);
+    --bs-link-hover-color: var(--ts-violet-2-rgb);
+
+    --bs-navbar-color: var(--ts-white-rgb);
+    --bs-navbar-hover-color: var(--ts-white-rgb);
+    --bs-nav-link-font-size: 18px;
+    --bs-nav-link-font-weight: 400;
+    --bs-nav-link-color: var(--ts-white-rgb);
+    --ts-nav-link-hover-border-color: var(--ts-violet-1-rgb);
+}
+
+/* ===========================================================================
+ * BUTTON STYLES
+ * Customizes Bootstrap buttons with rounded corners and SolverForge colors.
+ * =========================================================================== */
+.btn {
+    --bs-btn-border-radius: 1.5rem;
+}
+
+/* Primary button - violet color */
+.btn-primary {
+    --bs-btn-bg: var(--ts-violet-1-rgb);
+    --bs-btn-border-color: var(--ts-violet-1-rgb);
+    --bs-btn-hover-bg: var(--ts-violet-2-rgb);
+    --bs-btn-hover-border-color: var(--ts-violet-2-rgb);
+    --bs-btn-active-bg: var(--ts-violet-2-rgb);
+    --bs-btn-active-border-bg: var(--ts-violet-2-rgb);
+    --bs-btn-disabled-bg: var(--ts-violet-1-rgb);
+    --bs-btn-disabled-border-color: var(--ts-violet-1-rgb);
+}
+
+/* Outline primary button */
+.btn-outline-primary {
+    --bs-btn-color: var(--ts-violet-1-rgb);
+    --bs-btn-border-color: var(--ts-violet-1-rgb);
+    --bs-btn-hover-bg: var(--ts-violet-1-rgb);
+    --bs-btn-hover-border-color: var(--ts-violet-1-rgb);
+    --bs-btn-active-bg: var(--ts-violet-1-rgb);
+    --bs-btn-active-border-color: var(--ts-violet-1-rgb);
+    --bs-btn-disabled-color: var(--ts-violet-1-rgb);
+    --bs-btn-disabled-border-color: var(--ts-violet-1-rgb);
+}
+
+/* ===========================================================================
+ * NAVBAR STYLES
+ * Styles for the dark navbar variant.
+ * =========================================================================== */
+.navbar-dark {
+    --bs-link-color: var(--ts-violet-dark-1-rgb);
+    --bs-link-hover-color: var(--ts-violet-dark-2-rgb);
+    --bs-navbar-color: var(--ts-white-rgb);
+    --bs-navbar-hover-color: var(--ts-white-rgb);
+}
+
+/* ===========================================================================
+ * NAVIGATION PILLS
+ * Styles for the main tab navigation.
+ * =========================================================================== */
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--ts-green-1-rgb);
+}
+
+.nav-pills .nav-link:hover {
+    color: var(--ts-green-1-rgb);
+}
+
+.nav-pills .nav-link.active:hover {
+    color: var(--ts-white-rgb);
+}

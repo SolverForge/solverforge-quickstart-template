@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "my_quickstart"  # TODO: Change to your project name
+version = "1.0.0"
+description = "A SolverForge constraint optimization quickstart"
+requires-python = ">=3.10"
+dependencies = [
+    'solverforge-legacy == 1.24.1',
+    'fastapi == 0.111.0',
+    'pydantic == 2.7.3',
+    'uvicorn == 0.30.1',
+]
+
+[project.optional-dependencies]
+dev = [
+    'pytest == 8.2.2',
+]
+
+[project.scripts]
+run-app = "my_quickstart:main"

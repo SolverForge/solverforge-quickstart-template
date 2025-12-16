@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+================================================================================
+SOLVERFORGE QUICKSTART TEMPLATE - index.html
+================================================================================
+
+This is an interactive educational UI template. It serves two purposes:
+1. A working UI for your SolverForge optimization problem
+2. A teaching tool that shows how to build itself
+
+HOW TO CUSTOMIZE THIS TEMPLATE:
+1. Replace "Task Assignment Solver" with your problem name
+2. Update the KPI cards to match your domain metrics
+3. Modify the task/resource rendering to match your entities
+4. Update constraint badges to match your constraints.py
+
+STRUCTURE:
+- <head>: CSS dependencies and custom styles
+- <body>:
+  - Header with logo and navigation
+  - Demo tab: Live solver visualization
+  - Build tab: Source code viewer
+  - Guide tab: cURL examples
+  - API tab: Swagger UI
+
+INTERACTIVE CODE LINKS:
+Elements with class="code-link" and data-target="file:section"
+will show a code icon on hover. Clicking navigates to the Build tab and
+highlights the relevant source code - helping you learn by exploring.
+================================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- =======================================================================
+         PAGE TITLE
+         TODO: Change this to match your quickstart name
+         ======================================================================= -->
+    <title>SolverForge Quickstart Template - Learn by Building</title>
+
+    <!-- =======================================================================
+         CSS DEPENDENCIES
+
+         Required libraries:
+         - Bootstrap 5.3: Layout, components, utilities
+         - Font Awesome 6.5: Icons
+         - Prism.js Tomorrow theme: Syntax highlighting for code viewer
+         - SolverForge webui.css: Brand colors and standard styles
+
+         TIP: These are loaded from CDN for simplicity. In production, you may
+         want to bundle them locally for offline use.
+         ======================================================================= -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"/>
+    <link rel="stylesheet" href="/webjars/solverforge/css/solverforge-webui.css"/>
+    <link rel="stylesheet" href="/app.css"/>
+    <link rel="icon" href="/webjars/solverforge/img/solverforge-favicon.svg" type="image/svg+xml">
+</head>
+
+<body>
+
+<!--
+================================================================================
+HEADER
+================================================================================
+
+The header contains:
+1. SolverForge logo (links to solverforge.org)
+2. Main navigation tabs (Demo, Learn, Build, Guide, API)
+3. Data dropdown (populated by app.js from /demo-data endpoint)
+
+CUSTOMIZATION:
+- The logo is loaded from /webjars/solverforge/img/
+- Navigation uses Bootstrap 5 pills with custom .nav-main styling
+- Add/remove tabs by modifying the <ul class="nav"> list
+================================================================================
+-->
+<header class="bg-white shadow-sm">
+    <div class="container-fluid py-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <!-- Logo - Links to SolverForge homepage -->
+            <a href="https://www.solverforge.org" class="text-decoration-none">
+                <img src="/webjars/solverforge/img/solverforge-horizontal.svg" alt="SolverForge" height="40">
+            </a>
+
+            <!--
+            NAVIGATION TABS
+
+            Each tab corresponds to a .tab-pane in the main content area.
+            Bootstrap's data-bs-toggle="pill" handles tab switching.
+
+            TO ADD A NEW TAB:
+            1. Add a new <li class="nav-item"> here
+            2. Add a matching <div class="tab-pane" id="your-tab"> below
+            -->
+            <ul class="nav nav-main" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#demo">
+                        <i class="fas fa-play-circle"></i>Demo
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#build">
+                        <i class="fas fa-code"></i>Build
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#guide">
+                        <i class="fas fa-book"></i>Guide
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#api">
+                        <i class="fas fa-plug"></i>API
+                    </button>
+                </li>
+            </ul>
+
+            <!--
+            DATA DROPDOWN
+
+            Populated by app.js from the /demo-data endpoint.
+            Each item loads a different sample dataset.
+
+            See: loadDemoData() in app.js
+            -->
+            <div class="dropdown">
+                <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-database me-1"></i>Data
+                </button>
+                <ul class="dropdown-menu" id="dataDropdown">
+                    <!-- Items added by app.js - see loadDemoData() -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!--
+================================================================================
+NOTIFICATION PANEL
+================================================================================
+
+Fixed-position container for toast notifications.
+Use showNotification(message, type) from app.js to display messages.
+
+Types: 'success', 'danger', 'warning', 'info'
+================================================================================
+-->
+<div id="notificationPanel"></div>
+
+<!--
+================================================================================
+MAIN CONTENT - TAB PANELS
+================================================================================
+
+Each tab-pane corresponds to a navigation tab above.
+Bootstrap handles showing/hiding based on which tab is active.
+================================================================================
+-->
+<div class="tab-content p-4">
+
+    <!--
+    ===========================================================================
+    DEMO TAB
+    ===========================================================================
+
+    The main interactive solver visualization.
+
+    SECTIONS:
+    1. Hero: Problem title and description
+    2. KPIs: Key metrics (tasks, assigned, violations, score)
+    3. Control Bar: Solve/Stop buttons
+    4. Resources Panel: List of available resources
+    5. Tasks Panel: Grid of tasks with assignments
+    6. Constraints Legend: Clickable constraint badges
+
+    INTERACTIVE CODE FEATURE:
+    All major elements have class="code-link" and data-target
+    attributes. Clicking reveals the source code that generates them.
+    ===========================================================================
+    -->
+    <div class="tab-pane fade show active" id="demo">
+
+        <!--
+        HERO SECTION
+
+        The prominent banner introducing your optimization problem.
+
+        TODO: Customize these values for your domain:
+        - Change the icon (fa-project-diagram) to match your problem
+        - Update the title (Task Assignment Solver)
+        - Modify the description text
+
+        INTERACTIVE CODE: data-target="index.html:hero-section" links to this HTML
+        -->
+        <div class="hero-section mb-4 code-link" data-target="index.html:hero-section">
+            <span class="code-tooltip">Click to view HTML code</span>
+            <span class="hero-badge"><i class="fas fa-flask me-1"></i>Interactive Demo</span>
+            <h1 class="text-white mb-2">
+                <i class="fas fa-project-diagram me-2"></i>Task Assignment Solver
+            </h1>
+            <p class="text-white-50 mb-0">
+                Assign tasks to resources while respecting skill requirements and capacity constraints.
+                <strong class="text-white">Click any element</strong> to see its source code.
+            </p>
+        </div>
+
+        <!--
+        KPI CARDS
+
+        Display key metrics about the current solution.
+
+        DEFAULT KPIs (customize for your domain):
+        - kpiTotalTasks: Total planning entities
+        - kpiAssigned: Entities with assigned planning variable
+        - kpiViolations: Hard constraint violations
+        - kpiScore: HardSoftScore string
+
+        Each card has code-link pointing to updateKPIs() in app.js.
+
+        TO ADD A NEW KPI:
+        1. Add a new col-6 col-md-3 div here
+        2. Update updateKPIs() in app.js to populate it
+        -->
+        <div class="row g-3 mb-4">
+            <!-- Total Tasks KPI -->
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-tasks code-link" data-target="app.js:updateKPIs">
+                    <span class="code-tooltip">updateKPIs() in app.js</span>
+                    <div class="kpi-icon"><i class="fas fa-tasks"></i></div>
+                    <div class="kpi-value" id="kpiTotalTasks">0</div>
+                    <div class="kpi-label">Total Tasks</div>
+                </div>
+            </div>
+
+            <!-- Assigned Tasks KPI -->
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-assigned code-link" data-target="app.js:updateKPIs">
+                    <span class="code-tooltip">updateKPIs() in app.js</span>
+                    <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="kpi-value" id="kpiAssigned">0</div>
+                    <div class="kpi-label">Assigned</div>
+                </div>
+            </div>
+
+            <!-- Violations KPI -->
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-violations code-link" data-target="app.js:countViolations">
+                    <span class="code-tooltip">countViolations() in app.js</span>
+                    <div class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="kpi-value" id="kpiViolations">0</div>
+                    <div class="kpi-label">Violations</div>
+                </div>
+            </div>
+
+            <!-- Score KPI -->
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-score code-link" data-target="app.js:renderSchedule">
+                    <span class="code-tooltip">renderSchedule() in app.js</span>
+                    <div class="kpi-icon"><i class="fas fa-star"></i></div>
+                    <div class="kpi-value" id="kpiScore">?</div>
+                    <div class="kpi-label">Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!--
+        CONTROL BAR
+
+        Contains buttons for controlling the solver.
+
+        BUTTONS:
+        - #solveButton: Starts solving (calls solve() in app.js)
+        - #stopSolvingButton: Stops solving (calls stopSolving() in app.js)
+        - #solvingSpinner: Shows while solver is running
+        - #analyzeButton: Shows score breakdown (calls analyze() in app.js)
+
+        The stop button is hidden by default, shown when solving starts.
+        -->
+        <div class="control-bar mb-4 d-flex align-items-center gap-3 flex-wrap code-link" data-target="app.js:solve">
+            <span class="code-tooltip">solve() and stopSolving() in app.js</span>
+
+            <!-- Solve button - visible when not solving -->
+            <button id="solveButton" class="btn btn-success btn-lg">
+                <i class="fas fa-play me-2"></i>Solve
+            </button>
+
+            <!-- Stop button - visible when solving -->
+            <button id="stopSolvingButton" class="btn btn-danger btn-lg" style="display: none;">
+                <i class="fas fa-stop me-2"></i>Stop
+            </button>
+
+            <!-- Spinner - animated when solving -->
+            <span id="solvingSpinner"></span>
+
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <!-- Analyze button - shows score breakdown -->
+                <button id="analyzeButton" class="btn btn-outline-secondary code-link" data-target="app.js:analyze">
+                    <span class="code-tooltip">analyze() in app.js</span>
+                    <i class="fas fa-microscope me-1"></i>Analyze
+                </button>
+            </div>
+        </div>
+
+        <!--
+        MAIN CONTENT GRID
+
+        Two-column layout:
+        - Left (col-lg-4): Resources panel - problem facts
+        - Right (col-lg-8): Tasks panel - planning entities
+
+        Both panels have code-link pointing to their render functions.
+        -->
+        <div class="row g-4">
+            <!--
+            RESOURCES PANEL
+
+            Displays problem facts (resources that tasks can be assigned to).
+            Content populated by renderResources() in app.js.
+
+            Each resource shows:
+            - Name
+            - Capacity with utilization bar
+            - Available skills
+            -->
+            <div class="col-lg-4">
+                <div class="section-card code-link" data-target="app.js:renderResources">
+                    <span class="code-tooltip">renderResources() in app.js</span>
+                    <div class="section-header">
+                        <h5><i class="fas fa-users me-2"></i>Resources</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary" id="resourceCount">0</span>
+                            <button class="btn btn-sm btn-success" onclick="showAddResourceModal(event)" title="Add Resource">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-body" id="resourcesPanel">
+                        <p class="text-muted text-center">Select a dataset to load resources</p>
+                    </div>
+                </div>
+            </div>
+
+            <!--
+            TASKS PANEL
+
+            Displays planning entities (tasks to be assigned).
+            Content populated by renderSolution() in app.js.
+
+            Each task shows:
+            - Name and ID
+            - Duration
+            - Required skill (if any)
+            - Assigned resource (or "Unassigned")
+            - Violation status (red border if constraint violated)
+            -->
+            <div class="col-lg-8">
+                <div class="section-card code-link" data-target="app.js:renderSolution">
+                    <span class="code-tooltip">renderSolution() in app.js</span>
+                    <div class="section-header">
+                        <h5><i class="fas fa-clipboard-list me-2"></i>Tasks</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary" id="taskCount">0</span>
+                            <button class="btn btn-sm btn-success" onclick="showAddTaskModal(event)" title="Add Task">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-body" id="tasksPanel">
+                        <p class="text-muted text-center">Select a dataset to load tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--
+        CONSTRAINTS LEGEND
+
+        Clickable badges showing all active constraints from constraints.py.
+        Each badge links to the constraint function definition.
+
+        CONSTRAINT TYPES:
+        - Hard (red, lock icon): MUST be satisfied. Violations make solution infeasible.
+        - Soft (green, feather icon): SHOULD be optimized. More violations = worse score.
+
+        TODO: Update these badges to match your constraints.py definitions.
+        Each data-target points to "constraints.py:function_name"
+        -->
+        <div class="constraints-legend mt-4 code-link" data-target="constraints.py:define_constraints">
+            <span class="code-tooltip">constraints.py - define_constraints()</span>
+            <h6 class="mb-3"><i class="fas fa-balance-scale me-2"></i>Active Constraints</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <!-- Hard constraint: Required skill -->
+                <span class="constraint-badge hard" data-target="constraints.py:required_skill">
+                    <i class="fas fa-lock"></i>Required Skill
+                </span>
+
+                <!-- Hard constraint: Resource capacity -->
+                <span class="constraint-badge hard" data-target="constraints.py:resource_capacity">
+                    <i class="fas fa-lock"></i>Resource Capacity
+                </span>
+
+                <!-- Soft constraint: Minimize duration -->
+                <span class="constraint-badge soft" data-target="constraints.py:minimize_total_duration">
+                    <i class="fas fa-feather"></i>Minimize Duration
+                </span>
+
+                <!-- Soft constraint: Balance load -->
+                <span class="constraint-badge soft" data-target="constraints.py:balance_resource_load">
+                    <i class="fas fa-feather"></i>Balance Load
+                </span>
+            </div>
+        </div>
+
+        <!--
+        CONSTRAINT WEIGHT SLIDERS
+
+        Interactive sliders to adjust constraint weights.
+        Weight 0 = disabled, 100 = full strength.
+        Changes are applied when clicking Solve.
+        -->
+        <div class="constraints-legend mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Constraint Weights</h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="resetConstraintWeights()">
+                    <i class="fas fa-undo me-1"></i>Reset
+                </button>
+            </div>
+
+            <!-- Hard constraint: Required Skill -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <label class="form-label mb-0">
+                        <span class="badge bg-danger me-1">Hard</span>Required Skill
+                    </label>
+                    <span class="text-muted" id="weightRequiredSkillValue">100</span>
+                </div>
+                <input type="range" class="form-range" id="weightRequiredSkill" min="0" max="100" value="100"
+                       oninput="updateWeightDisplay('RequiredSkill')">
+            </div>
+
+            <!-- Hard constraint: Resource Capacity -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <label class="form-label mb-0">
+                        <span class="badge bg-danger me-1">Hard</span>Resource Capacity
+                    </label>
+                    <span class="text-muted" id="weightResourceCapacityValue">100</span>
+                </div>
+                <input type="range" class="form-range" id="weightResourceCapacity" min="0" max="100" value="100"
+                       oninput="updateWeightDisplay('ResourceCapacity')">
+            </div>
+
+            <!-- Soft constraint: Minimize Duration -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <label class="form-label mb-0">
+                        <span class="badge bg-success me-1">Soft</span>Minimize Duration
+                    </label>
+                    <span class="text-muted" id="weightMinimizeDurationValue">50</span>
+                </div>
+                <input type="range" class="form-range" id="weightMinimizeDuration" min="0" max="100" value="50"
+                       oninput="updateWeightDisplay('MinimizeDuration')">
+            </div>
+
+            <!-- Soft constraint: Balance Load -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <label class="form-label mb-0">
+                        <span class="badge bg-success me-1">Soft</span>Balance Load
+                    </label>
+                    <span class="text-muted" id="weightBalanceLoadValue">50</span>
+                </div>
+                <input type="range" class="form-range" id="weightBalanceLoad" min="0" max="100" value="50"
+                       oninput="updateWeightDisplay('BalanceLoad')">
+            </div>
+
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Set to 0 to disable a constraint. Changes apply on next Solve.
+            </small>
+        </div>
+    </div>
+
+    <!--
+    ===========================================================================
+    BUILD TAB
+    ===========================================================================
+
+    Source code viewer showing actual quickstart files with syntax highlighting.
+
+    COMPONENTS:
+    1. File Navigator (left): Tree view of project files
+    2. Code Viewer (right): Syntax-highlighted code display
+
+    HOW IT WORKS:
+    1. User clicks a file in the navigator
+    2. app.js fetches source code from /source-code/{filename} API
+    3. Prism.js highlights the syntax
+
+    INTERACTIVE CODE INTEGRATION:
+    When user clicks a code-link element in Demo tab,
+    they're navigated here with the relevant file displayed.
+    ===========================================================================
+    -->
+    <div class="tab-pane fade" id="build">
+        <div class="row g-4">
+            <!--
+            FILE NAVIGATOR
+
+            Tree view showing all project source files.
+            Click a file to load it in the code viewer.
+
+            Each .file-item has:
+            - data-file: The filename to load
+            - Icon: Language-specific (fa-python, fa-html5, fa-js)
+            - Badge: File type description
+
+            TO ADD A NEW FILE:
+            1. Add a .file-item div with data-file="filename"
+            2. Add the file to SOURCE_FILES whitelist in rest_api.py
+            -->
+            <div class="col-lg-3">
+                <div class="file-nav">
+                    <div class="file-nav-header">
+                        <i class="fas fa-folder-tree me-2"></i>Project Files
+                    </div>
+                    <div class="file-tree">
+                        <!-- Python source files -->
+                        <div class="folder-item">
+                            <div class="folder-name"><i class="fas fa-folder me-2"></i>src/my_quickstart/</div>
+                            <div class="file-item active" data-file="domain.py">
+                                <i class="fab fa-python"></i>
+                                <span>domain.py</span>
+                                <span class="file-badge">Model</span>
+                            </div>
+                            <div class="file-item" data-file="constraints.py">
+                                <i class="fab fa-python"></i>
+                                <span>constraints.py</span>
+                                <span class="file-badge">Rules</span>
+                            </div>
+                            <div class="file-item" data-file="solver.py">
+                                <i class="fab fa-python"></i>
+                                <span>solver.py</span>
+                                <span class="file-badge">Config</span>
+                            </div>
+                            <div class="file-item" data-file="rest_api.py">
+                                <i class="fab fa-python"></i>
+                                <span>rest_api.py</span>
+                                <span class="file-badge">API</span>
+                            </div>
+                            <div class="file-item" data-file="demo_data.py">
+                                <i class="fab fa-python"></i>
+                                <span>demo_data.py</span>
+                                <span class="file-badge">Data</span>
+                            </div>
+                        </div>
+                        <!-- Frontend files -->
+                        <div class="folder-item mt-2">
+                            <div class="folder-name"><i class="fas fa-folder me-2"></i>static/</div>
+                            <div class="file-item" data-file="index.html">
+                                <i class="fab fa-html5"></i>
+                                <span>index.html</span>
+                                <span class="file-badge">UI</span>
+                            </div>
+                            <div class="file-item" data-file="app.js">
+                                <i class="fab fa-js"></i>
+                                <span>app.js</span>
+                                <span class="file-badge">Logic</span>
+                            </div>
+                            <div class="file-item" data-file="app.css">
+                                <i class="fab fa-css3-alt"></i>
+                                <span>app.css</span>
+                                <span class="file-badge">Styles</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!--
+            CODE VIEWER
+
+            Main panel showing syntax-highlighted source code.
+
+            Components:
+            - Header: File path and action buttons
+            - Body: Prism.js highlighted code with line numbers
+
+            Action buttons:
+            - Copy: Copies code to clipboard
+            - See in Demo: Navigates to Demo tab (useful for HTML/JS)
+            -->
+            <div class="col-lg-9">
+                <div class="code-viewer">
+                    <div class="code-viewer-header">
+                        <span class="code-path" id="currentFilePath">
+                            <i class="fab fa-python me-2"></i>src/my_quickstart/domain.py
+                        </span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-light me-2" onclick="copyCurrentCode()">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="showInDemo()">
+                                <i class="fas fa-eye me-1"></i>See in Demo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="code-viewer-body">
+                        <!--
+                        Prism.js handles syntax highlighting.
+                        The .line-numbers class enables line number display.
+                        Language class (language-python) sets highlighting rules.
+                        -->
+                        <pre class="line-numbers"><code class="language-python" id="codeContent">Loading...</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ===========================================================================
+    GUIDE TAB
+    ===========================================================================
+
+    REST API integration guide with cURL examples.
+
+    Shows the typical workflow:
+    1. Download demo data
+    2. Start solving (get job ID)
+    3. Check status
+    4. Get solution
+    5. Stop solving
+
+    TODO: Update endpoint paths and examples to match your API.
+    ===========================================================================
+    -->
+    <div class="tab-pane fade" id="guide">
+        <div class="container">
+            <h1 class="mb-4"><i class="fas fa-book me-2"></i>REST API Guide</h1>
+            <h2>Integration via cURL</h2>
+
+            <h3 class="mt-4">1. Download demo data</h3>
+            <pre class="bg-dark text-light p-3 rounded"><code>curl -X GET http://localhost:8080/demo-data/SMALL -o sample.json</code></pre>
+
+            <h3 class="mt-4">2. Start solving</h3>
+            <p>Returns a <code>jobId</code> for subsequent requests.</p>
+            <pre class="bg-dark text-light p-3 rounded"><code>curl -X POST -H 'Content-Type:application/json' http://localhost:8080/schedules -d @sample.json</code></pre>
+
+            <h3 class="mt-4">3. Check status</h3>
+            <pre class="bg-dark text-light p-3 rounded"><code>curl -X GET http://localhost:8080/schedules/{jobId}/status</code></pre>
+
+            <h3 class="mt-4">4. Get solution</h3>
+            <pre class="bg-dark text-light p-3 rounded"><code>curl -X GET http://localhost:8080/schedules/{jobId}</code></pre>
+
+            <h3 class="mt-4">5. Stop solving</h3>
+            <pre class="bg-dark text-light p-3 rounded"><code>curl -X DELETE http://localhost:8080/schedules/{jobId}</code></pre>
+        </div>
+    </div>
+
+    <!--
+    ===========================================================================
+    API TAB (SWAGGER UI)
+    ===========================================================================
+
+    Embeds the FastAPI auto-generated Swagger UI documentation.
+
+    The iframe loads /q/swagger-ui which is served by the FastAPI backend.
+    This provides interactive API documentation and testing.
+
+    NOTE: The /q/ prefix is the Quarkus-style path used by FastAPI with
+    the swagger-ui extension.
+    ===========================================================================
+    -->
+    <div class="tab-pane fade" id="api">
+        <h1 class="mb-4"><i class="fas fa-plug me-2"></i>REST API Reference</h1>
+        <div class="ratio ratio-1x1" style="max-height: 800px;">
+            <iframe src="/q/swagger-ui" style="border-radius: 12px;"></iframe>
+        </div>
+    </div>
+
+</div>
+
+<!--
+================================================================================
+SCORE ANALYSIS MODAL
+================================================================================
+
+Modal dialog showing detailed score breakdown from /schedules/analyze endpoint.
+
+Displayed when user clicks the Analyze button.
+Content populated by analyze() function in app.js.
+
+Shows:
+- Overall score
+- Constraint match details (which constraints are violated and by how much)
+================================================================================
+-->
+<div class="modal fade" id="scoreAnalysisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-microscope me-2"></i>Score Analysis
+                    <span id="scoreAnalysisScore" class="text-muted ms-2"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="scoreAnalysisContent">
+                <!-- Populated by analyze() in app.js -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+================================================================================
+ADD RESOURCE MODAL
+================================================================================
+-->
+<div class="modal fade" id="addResourceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Add Resource
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="resourceName" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="resourceName" placeholder="e.g., Alice">
+                </div>
+                <div class="mb-3">
+                    <label for="resourceCapacity" class="form-label">Capacity (minutes)</label>
+                    <input type="number" class="form-control" id="resourceCapacity" value="100" min="1">
+                </div>
+                <div class="mb-3">
+                    <label for="resourceSkills" class="form-label">Skills (comma-separated)</label>
+                    <input type="text" class="form-control" id="resourceSkills" placeholder="e.g., python, sql, java">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="addResource()">
+                    <i class="fas fa-plus me-1"></i>Add Resource
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+================================================================================
+ADD TASK MODAL
+================================================================================
+-->
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-tasks me-2"></i>Add Task
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="taskName" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="taskName" placeholder="e.g., API Development">
+                </div>
+                <div class="mb-3">
+                    <label for="taskDuration" class="form-label">Duration (minutes)</label>
+                    <input type="number" class="form-control" id="taskDuration" value="30" min="1">
+                </div>
+                <div class="mb-3">
+                    <label for="taskSkill" class="form-label">Required Skill (optional)</label>
+                    <input type="text" class="form-control" id="taskSkill" placeholder="e.g., python">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="addTask()">
+                    <i class="fas fa-plus me-1"></i>Add Task
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+================================================================================
+JAVASCRIPT DEPENDENCIES
+================================================================================
+
+Required libraries (loaded from CDN):
+- jQuery 3.7.1: DOM manipulation and AJAX
+- Popper.js 2.11.8: Bootstrap positioning engine
+- Bootstrap 5.3.3: UI components (modals, tabs, dropdowns)
+- Prism.js 1.29.0: Syntax highlighting for code viewer
+  - Core library
+  - Python language support
+  - JavaScript language support
+  - Line numbers plugin
+
+LOAD ORDER MATTERS:
+1. jQuery (required by Bootstrap)
+2. Popper.js (required by Bootstrap)
+3. Bootstrap
+4. Prism.js (core, then language modules, then plugins)
+5. app.js (our custom code)
+
+TIP: For production, consider bundling these locally.
+================================================================================
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+<!--
+================================================================================
+APPLICATION JAVASCRIPT
+================================================================================
+
+The main application logic is in app.js. It handles:
+- Loading demo data from the API
+- Starting/stopping the solver
+- Polling for solution updates
+- Rendering the solution visualization
+- Learn tab lesson navigation
+- Build tab code viewer
+- Interactive Code click-to-code feature
+
+See app.js for detailed documentation of each function.
+================================================================================
+-->
+<script src="/app.js"></script>
+
+</body>
+</html>

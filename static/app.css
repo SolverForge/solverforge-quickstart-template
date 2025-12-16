@@ -1,0 +1,728 @@
+/*
+ * =============================================================================
+ * SOLVERFORGE QUICKSTART TEMPLATE - APP STYLES
+ * =============================================================================
+ *
+ * Custom styles for the quickstart template UI.
+ * This file creates the "code-link" educational UI appearance.
+ *
+ * CUSTOMIZATION GUIDE:
+ * - Brand colors: Change #10b981 (green) and #3E00FF (violet)
+ * - Card styles: Modify .kpi-card, .task-card, .resource-card
+ * - Animations: Adjust @keyframes rules for different effects
+ *
+ * SECTIONS:
+ * 1. Global styles
+ * 2. Interactive Code clickable elements (code reveal on hover)
+ * 3. Hero section (gradient banner)
+ * 4. KPI cards (metrics display)
+ * 5. Control bar (solve/stop buttons)
+ * 6. Section cards (container panels)
+ * 7. Task cards (planning entity visualization)
+ * 8. Resource cards (problem fact visualization)
+ * 9. Constraint legend (clickable constraint badges)
+ * 10. Build tab (file navigator and code viewer)
+ * 11. Navigation overrides
+ * 12. Responsive adjustments
+ */
+
+/* =============================================================================
+ * 1. GLOBAL STYLES
+ *
+ * Base styles for the page. The light gray background (#f8fafc) provides
+ * contrast for white cards.
+ * ============================================================================= */
+body {
+    background: #f8fafc;
+}
+
+/* =============================================================================
+ * 2. INTERACTIVE CODE CLICKABLE ELEMENTS
+ *
+ * The "code-link" feature: every UI element shows a code icon on hover,
+ * indicating it can be clicked to view the source code that generates it.
+ *
+ * HOW IT WORKS:
+ * 1. Add class="code-link" to any element
+ * 2. Add data-target="filename:section" to specify the code location
+ * 3. CSS ::after pseudo-element creates the code icon
+ * 4. JavaScript handles click -> navigates to Build tab
+ *
+ * EXAMPLE:
+ * <div class="kpi-card code-link" data-target="app.js:updateKPIs">
+ *   <span class="code-tooltip">updateKPIs() in app.js</span>
+ *   ...content...
+ * </div>
+ * ============================================================================= */
+.code-link {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Code icon that appears on hover (uses Font Awesome code icon) */
+.code-link::after {
+    content: '\f121'; /* fa-code unicode */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: rgba(62, 0, 255, 0.9); /* SolverForge violet */
+    color: white;
+    border-radius: 4px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+}
+
+.code-link:hover::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Violet glow border on hover to indicate clickability */
+.code-link:hover {
+    box-shadow: 0 0 0 2px rgba(62, 0, 255, 0.5);
+}
+
+/* Tooltip that appears above code-link elements */
+.code-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Tooltip arrow */
+.code-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1f2937;
+}
+
+.code-link:hover .code-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* =============================================================================
+ * 3. HERO SECTION
+ *
+ * The prominent banner at the top of the Demo tab. Uses a gradient from
+ * SolverForge violet to green, with a rotating shimmer effect.
+ *
+ * TODO: Update the gradient colors to match your brand or problem domain.
+ * ============================================================================= */
+.hero-section {
+    background: linear-gradient(135deg, #2E1760 0%, #3E00FF 50%, #10b981 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+/* Animated shimmer effect - creates visual interest */
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 15s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Small badge above the hero title */
+.hero-badge {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+/* =============================================================================
+ * 4. KPI CARDS
+ *
+ * Key Performance Indicator cards show solution metrics at a glance.
+ *
+ * DEFAULT KPIs (customize for your domain):
+ * - Total Tasks: Count of planning entities
+ * - Assigned: Count with non-null planning variable
+ * - Violations: Count of hard constraint violations
+ * - Score: The HardSoftScore from the solver
+ *
+ * COLOR CODING:
+ * - Purple (#6366f1): Neutral/informational
+ * - Green (#10b981): Positive/success
+ * - Red (#ef4444): Negative/violations
+ * - Violet (#3E00FF): Score/brand
+ * ============================================================================= */
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+
+/* Hover lift effect - makes cards feel interactive */
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15);
+}
+
+.kpi-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+/* KPI color variations - each card type has its own color */
+.kpi-tasks .kpi-icon, .kpi-tasks .kpi-value { color: #6366f1; }
+.kpi-assigned .kpi-icon, .kpi-assigned .kpi-value { color: #10b981; }
+.kpi-violations .kpi-icon, .kpi-violations .kpi-value { color: #ef4444; }
+.kpi-score .kpi-icon, .kpi-score .kpi-value { color: #3E00FF; }
+
+/* Pulse animation when KPI value changes (applied via JavaScript) */
+.kpi-pulse {
+    animation: kpiPulse 0.5s ease;
+}
+
+@keyframes kpiPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* =============================================================================
+ * 5. CONTROL BAR
+ *
+ * Contains the Solve/Stop buttons and solving spinner.
+ *
+ * BUTTONS:
+ * - #solveButton: Starts the solver (POST to /schedules)
+ * - #stopSolvingButton: Stops the solver (DELETE to /schedules/{id})
+ * - #analyzeButton: Shows score breakdown (PUT to /schedules/analyze)
+ *
+ * The spinner (#solvingSpinner) animates while solving is active.
+ * ============================================================================= */
+.control-bar {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
+}
+
+/* Solving spinner - hidden by default, shown when solving */
+#solvingSpinner {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #10b981;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+#solvingSpinner.active {
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+ * 6. SECTION CARDS
+ *
+ * Container panels for grouping content (Resources, Tasks, etc.).
+ * Consistent styling with header and body areas.
+ * ============================================================================= */
+.section-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    height: 100%;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.section-body {
+    padding: 1.25rem;
+}
+
+/* =============================================================================
+ * 7. TASK CARDS
+ *
+ * Visualization for planning entities (what the solver assigns).
+ *
+ * STATES:
+ * - Default (green border): Task is assigned
+ * - .unassigned (orange): Task has no resource assigned
+ * - .violation (red): Task has a constraint violation
+ *
+ * CUSTOMIZATION:
+ * Modify createTaskCard() in app.js to change what's displayed.
+ * ============================================================================= */
+.task-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.task-card {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 4px solid #10b981; /* Green = assigned */
+    transition: all 0.2s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Unassigned state - yellow/orange warning */
+.task-card.unassigned {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+/* Violation state - red error */
+.task-card.violation {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.task-name {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-detail {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+/* Skill tag badge */
+.skill-tag {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.assigned-badge {
+    color: #10b981;
+    font-weight: 500;
+}
+
+.unassigned-badge {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* =============================================================================
+ * 8. RESOURCE CARDS
+ *
+ * Visualization for problem facts (resources that can be assigned to).
+ *
+ * FEATURES:
+ * - Blue gradient background
+ * - Capacity bar showing utilization
+ * - Skills list
+ *
+ * CUSTOMIZATION:
+ * Modify renderResources() in app.js to change the display.
+ * ============================================================================= */
+.resource-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #bfdbfe;
+}
+
+.resource-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.resource-name {
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.resource-stats {
+    font-size: 0.75rem;
+    color: #3b82f6;
+}
+
+/* Capacity utilization bar */
+.capacity-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.capacity-fill {
+    height: 100%;
+    background: #10b981; /* Green = under capacity */
+    border-radius: 3px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* Warning/danger states for capacity */
+.capacity-fill.warning { background: #f59e0b; } /* 80-100% */
+.capacity-fill.danger { background: #ef4444; }  /* >100% overflow */
+
+.skills-list {
+    margin-top: 0.5rem;
+}
+
+/* =============================================================================
+ * 9. CONSTRAINT LEGEND
+ *
+ * Clickable badges showing active constraints from constraints.py.
+ *
+ * CONSTRAINT TYPES:
+ * - Hard (red, lock icon): Must be satisfied, violations = infeasible
+ * - Soft (green, feather icon): Optimize these, more = worse score
+ *
+ * Each badge has a data-target attribute pointing to the constraint
+ * function in constraints.py. Clicking navigates to Build tab.
+ *
+ * TODO: Update these badges to match your constraints.py definitions.
+ * ============================================================================= */
+.constraints-legend {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.constraint-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Hard constraint styling - red with lock icon */
+.constraint-badge.hard {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.constraint-badge.hard:hover {
+    background: #fecaca;
+    transform: translateY(-2px);
+}
+
+/* Soft constraint styling - green with feather icon */
+.constraint-badge.soft {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.constraint-badge.soft:hover {
+    background: #bbf7d0;
+    transform: translateY(-2px);
+}
+
+/* =============================================================================
+ * 10. BUILD TAB STYLES
+ *
+ * The Build tab is a source code viewer showing actual quickstart files.
+ *
+ * COMPONENTS:
+ * - File navigator: Tree view of project files
+ * - Code viewer: Syntax-highlighted code display
+ * - Annotations: Jump-to-section links
+ *
+ * HOW IT WORKS:
+ * 1. User clicks a file in the navigator
+ * 2. app.js loads the source code (embedded or fetched)
+ * 3. Prism.js highlights the syntax
+ * 4. Annotations show key sections to jump to
+ * ============================================================================= */
+
+/* File navigator sidebar */
+.file-nav {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.file-nav-header {
+    background: #f8fafc;
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #334155;
+}
+
+.file-tree {
+    padding: 0.5rem;
+}
+
+.folder-item {
+    padding: 0.5rem;
+}
+
+.folder-name {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+/* File item in the tree */
+.file-item {
+    padding: 0.5rem 0.75rem;
+    margin-left: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.file-item:hover {
+    background: #f1f5f9;
+}
+
+.file-item.active {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.file-item i {
+    width: 16px;
+}
+
+/* File type badge */
+.file-badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #64748b;
+}
+
+/* Main code viewer panel */
+.code-viewer {
+    background: #0f172a;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.code-viewer-header {
+    background: #1e293b;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+}
+
+.code-path {
+    color: #94a3b8;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.code-viewer-body {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.code-viewer-body pre {
+    margin: 0 !important;
+    padding: 1rem !important;
+    background: transparent !important;
+}
+
+/* Code annotations sidebar */
+.code-annotations {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.annotation-item {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.annotation-item:hover {
+    background: #f1f5f9;
+}
+
+.annotation-line {
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+/* =============================================================================
+ * 11. NAVIGATION OVERRIDES
+ *
+ * Custom styling for the main tab navigation.
+ * Uses pill-style buttons with rounded corners.
+ * ============================================================================= */
+.nav-main {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-main .nav-link {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: #475569;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-main .nav-link:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* Active tab styling - green background */
+.nav-main .nav-link.active {
+    background: #10b981;
+    color: white;
+}
+
+.nav-main .nav-link i {
+    margin-right: 6px;
+}
+
+/* =============================================================================
+ * 12. NOTIFICATION PANEL
+ *
+ * Fixed position panel for showing notifications (errors, success messages).
+ * Positioned in top-right corner.
+ * ============================================================================= */
+#notificationPanel {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1050;
+}
+
+/* =============================================================================
+ * 13. RESPONSIVE ADJUSTMENTS
+ *
+ * Mobile-friendly modifications for smaller screens.
+ * ============================================================================= */
+@media (max-width: 768px) {
+    /* Single column task grid on mobile */
+    .task-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Smaller KPI values */
+    .kpi-value {
+        font-size: 1.5rem;
+    }
+
+    /* Hide progress step labels on mobile */
+    .step-label {
+        display: none;
+    }
+}
